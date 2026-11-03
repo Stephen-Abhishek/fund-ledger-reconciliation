@@ -75,3 +75,7 @@ This project demonstrates practical skills in financial data processing, reconci
 ## Disclaimer
 
 This is an educational prototype using fictional financial data. It is not production-ready accounting software and does not provide financial or compliance advice.
+
+## Dashboard Preview
+
+![Fund Reconciliation Dashboard](fund-reconciliation-dashboard.png)
