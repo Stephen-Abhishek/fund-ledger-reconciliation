@@ -1,0 +1,8 @@
+transaction_id,date,description,amount,type
+L001,2026-10-01,Investor A Capital,50000,Credit
+L002,2026-10-02,Office Rent,10000,Debit
+L003,2026-10-03,Investor B Capital,75000,Credit
+L004,2026-10-04,Legal Fees,4000,Debit
+L005,2026-10-05,Software Subscription,2000,Debit
+L006,2026-10-06,Investor C Capital,100000,Credit
+L007,2026-10-08,Consulting Fees,6000,Debit

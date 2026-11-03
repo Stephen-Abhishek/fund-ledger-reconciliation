@@ -1,0 +1,8 @@
+transaction_id,date,description,amount,type
+B001,2026-10-01,Investor A Capital,50000,Credit
+B002,2026-10-02,Office Rent,10000,Debit
+B003,2026-10-03,Investor B Capital,75000,Credit
+B004,2026-10-04,Legal Fees,5000,Debit
+B005,2026-10-05,Software Subscription,2000,Debit
+B006,2026-10-06,Investor C Capital,100000,Credit
+B007,2026-10-07,Audit Charges,8000,Debit
