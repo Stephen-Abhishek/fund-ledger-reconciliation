@@ -17,6 +17,55 @@ st.set_page_config(
 bank_df = pd.read_csv("bank_statement.csv")
 ledger_df = pd.read_csv("fund_ledger.csv")
 
+# Validate transaction amounts
+
+invalid_bank = bank_df[bank_df["amount"] <= 0]
+
+invalid_ledger = ledger_df[ledger_df["amount"] <= 0]
+
+if not invalid_bank.empty:
+    st.error("Invalid amounts found in bank statement!")
+
+if not invalid_ledger.empty:
+    st.error("Invalid amounts found in fund ledger!")
+
+# Clean transaction descriptions
+
+bank_df["description_clean"] = (
+    bank_df["description"].str.strip().str.lower()
+)
+
+ledger_df["description_clean"] = (
+    ledger_df["description"].str.strip().str.lower()
+)
+
+# Detect duplicate bank transactions
+
+duplicate_bank = bank_df[
+    bank_df.duplicated(
+        subset=["date", "description", "amount", "type"],
+        keep=False
+    )
+]
+
+# Detect duplicate fund ledger transactions
+
+duplicate_ledger = ledger_df[
+    ledger_df.duplicated(
+        subset=["date", "description", "amount", "type"],
+        keep=False
+    )
+]
+
+print("\nDUPLICATE BANK TRANSACTIONS")
+print(duplicate_bank)
+
+# Use cleaned descriptions for reconciliation
+
+bank_df["description"] = bank_df["description_clean"]
+
+ledger_df["description"] = ledger_df["description_clean"]
+
 # Match transactions
 matched = bank_df.merge(
     ledger_df,
@@ -61,11 +110,10 @@ if "audit_log" not in st.session_state:
 st.title("🏦 Fund Ledger & Reconciliation System")
 
 if total_discrepancies == 0:
-    st.success("All transactions are reconciled successfully!")
+    st.success("✅ FULLY RECONCILED — All transactions match successfully!")
 else:
     st.warning(
-        f"Attention required: {total_discrepancies} discrepancies "
-        "need financial review."
+        f"⚠️ DISCREPANCIES FOUND — {total_discrepancies} items require financial review."
     )
 
 st.write(
@@ -200,11 +248,45 @@ st.bar_chart(
 
 # Download Reconciliation Report
 
+# Financial Comparison Chart
+
+st.divider()
+st.subheader("💰 Bank vs Fund Ledger Comparison")
+
+financial_chart = pd.DataFrame({
+    "Source": ["Bank Statement", "Fund Ledger"],
+    "Total Amount": [bank_total, ledger_total]
+})
+
+st.bar_chart(
+    financial_chart,
+    x="Source",
+    y="Total Amount"
+)
+
 st.divider()
 
 st.subheader("📥 Download Reconciliation Report")
 
 report = comparison.copy()
+
+# Remove unnecessary technical columns
+report = report.drop(
+    columns=["description_clean_bank", "description_clean_ledger"],
+    errors="ignore"
+)
+
+# Rename columns for a professional report
+report = report.rename(columns={
+    "transaction_id_bank": "Bank Transaction ID",
+    "transaction_id_ledger": "Ledger Transaction ID",
+    "amount_bank": "Bank Amount",
+    "amount_ledger": "Ledger Amount",
+    "_merge": "Reconciliation Status",
+    "date": "Transaction Date",
+    "description": "Description",
+    "type": "Transaction Type"
+})
 
 csv_report = report.to_csv(index=False).encode("utf-8")
 
@@ -269,12 +351,55 @@ if not audit_df.empty:
 else:
     st.info("No transaction reviews recorded yet.")
 
-# Display audit log
 
-st.subheader("📋 Audit Log")
+   # Duplicate Transaction Dashboard
 
-if st.session_state.audit_log:
-    audit_df = pd.DataFrame(st.session_state.audit_log)
-    st.dataframe(audit_df, use_container_width=True)
+st.divider()
+
+st.subheader("🔁 Duplicate Bank Transactions")
+
+st.metric(
+    "Duplicate Entries Found",
+    len(duplicate_bank)
+)
+
+if not duplicate_bank.empty:
+    st.dataframe(
+        duplicate_bank,
+        use_container_width=True
+    )
 else:
-    st.info("No transaction reviews recorded yet.")
+    st.success("No duplicate transactions found!") 
+
+    # Duplicate Fund Ledger Transactions
+
+st.subheader("🔁 Duplicate Fund Ledger Transactions")
+
+st.metric(
+    "Duplicate Ledger Entries",
+    len(duplicate_ledger)
+)
+
+if not duplicate_ledger.empty:
+    st.dataframe(
+        duplicate_ledger,
+        use_container_width=True
+    )
+else:
+    st.success("No duplicate ledger transactions found!")
+
+    # Overall Duplicate Summary
+
+st.divider()
+
+st.subheader("📊 Overall Duplicate Summary")
+
+total_duplicates = (
+    len(duplicate_bank) +
+    len(duplicate_ledger)
+)
+
+st.metric(
+    "Total Duplicate Entries",
+    total_duplicates
+)
